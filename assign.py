@@ -22,7 +22,7 @@ class AssignHandler:
         self.cursor = self.db.cursor()
 
         self.cursor.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
-        self.cursor.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT, bonks NUMERIC)')
+        self.cursor.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT)')
 
         self.db.commit()
 
@@ -113,17 +113,13 @@ class AssignHandler:
             self.logger.warning(e)
 
     def increase_bonk(self, user_id, chat_id):
-        row = self.cursor.execute('SELECT bonks FROM bonks WHERE user_id=? AND chat_id=?', (user_id, chat_id)).fetchone()
-        if row is None:
-            row = [0]
-
-        self.cursor.execute('INSERT INTO bonks (user_id, chat_id, bonks) VALUES (?, ?, ?)', (user_id, chat_id, row[0] + 1))
+        self.cursor.execute('INSERT INTO bonks (user_id, chat_id) VALUES (?, ?)', (user_id, chat_id))
         self.db.commit()
 
     def handle_bonks(self, update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
         msg = ''
-        for user_id, chat_id, bonks in self.cursor.execute('SELECT user_id, chat_id, bonks FROM bonks WHERE chat_id=? ORDER BY bonks DESC LIMIT 10', (chat_id,)):
+        for user_id, bonks in self.cursor.execute('SELECT user_id, COUNT(user_id) FROM bonks WHERE chat_id=? GROUP BY user_id ORDER BY COUNT(user_id) DESC LIMIT 10', (chat_id,)):
             try:
                 user = context.bot.get_chat_member(chat_id, user_id)
                 user_name = user.user.mention_html()
