@@ -24,6 +24,6 @@ def more_jpeg(update: Update, context: CallbackContext):
         converted = BytesIO()
         image.save(converted, format='JPEG', quality=1)
 
-        bot.sendPhoto(message.chat.id, converted)
+        bot.sendPhoto(chat_id=message.chat.id, photo=converted.getvalue())
     except AttributeError as e:
         logging.warn(e)
