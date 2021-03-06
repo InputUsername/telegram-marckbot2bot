@@ -11,6 +11,7 @@ import signal
 import bf
 
 from assign import AssignHandler
+from morejpeg import more_jpeg
 
 BOT_USERNAME = 'marckbot2bot'
 
@@ -108,6 +109,7 @@ def main():
     dispatcher.add_handler(CommandHandler('defines', assign_handler.defines))
     dispatcher.add_handler(CommandHandler('bonks', assign_handler.handle_bonks))
     dispatcher.add_handler(CommandHandler('bf', run_brainfuck))
+    dispatcher.add_handler(CommandHandler('morejpeg', more_jpeg))
     dispatcher.add_handler(MessageHandler(Filters.regex(r'^s([^\\\n])(.*)\1(.*)\1([fiImM]+)?$'), substitute))
     dispatcher.add_handler(MessageHandler(Filters.regex(r'^/([\S]+)$'), assign_handler.handle_command))
 
