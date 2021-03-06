@@ -17,8 +17,9 @@ def more_jpeg(update: Update, context: CallbackContext):
         reply = message.reply_to_message
 
         file_id = reply.photo[-1].file_id if reply.photo else reply.document.file_id
-        content = bot.getFile(file_id)
-        image = Image.open(BytesIO(content))
+        file = bot.getFile(file_id)
+        content = file.download(out=BytesIO())
+        image = Image.open(content)
 
         converted = BytesIO()
         image.save(converted, format='JPEG', quality=1)
