@@ -1,0 +1,26 @@
+[project]
+name = "marckbot2bot"
+version = "0.2"
+description = "A partial fork/copy/resurrection of Marckbot, a Telegram bot with a bunch of random useful features."
+authors = [{name = "Koen Bolhuis"}, {name = "Jelle Besseling", email = "jelle@pingiun.com"}]
+readme = "README.md"
+dependencies = [
+    "python-telegram-bot",
+    "Pillow",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.scripts]
+marckbot2bot = "marckbot2bot.bot:main"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "pip-tools",
+]
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"

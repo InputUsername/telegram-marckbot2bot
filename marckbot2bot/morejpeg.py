@@ -8,7 +8,7 @@ from io import BytesIO
 import logging
 
 
-def more_jpeg(update: Update, context: CallbackContext):
+async def more_jpeg(update: Update, context: CallbackContext):
     """Send a photo or image file (document) back JPEG-encoded"""
 
     try:
@@ -17,13 +17,13 @@ def more_jpeg(update: Update, context: CallbackContext):
         reply = message.reply_to_message
 
         file_id = reply.photo[-1].file_id if reply.photo else reply.document.file_id
-        file = bot.getFile(file_id)
-        content = file.download(out=BytesIO())
+        file = await bot.get_file(file_id)
+        content = BytesIO(await file.download_as_bytearray())
         image = Image.open(content)
 
         converted = BytesIO()
         image.save(converted, format='JPEG', quality=1)
 
-        bot.sendPhoto(chat_id=message.chat.id, photo=converted.getvalue())
+        await bot.send_photo(chat_id=message.chat.id, photo=converted.getvalue())
     except AttributeError as e:
         logging.warn(e)

@@ -1,5 +1,9 @@
 venv
 .idea
+.vscode
 __pycache__
 
 defines.db
+build
+marckbot2bot.egg-info
+.env

@@ -1,12 +1,14 @@
 from telegram.ext import CallbackContext
-from telegram import Update, Message, Bot, ParseMode
-
-import jsonpickle
+from telegram import Update, Message, Bot
+from telegram.constants import ParseMode
 
 import sqlite3
 import logging
 import os
+import json
 from typing import Callable, Optional
+
+from marckbot2bot.attrdict import AttrDict
 
 DB_PATH = os.path.join(os.getenv('STATE_DIRECTORY', ''), 'defines.db')
 
@@ -38,8 +40,12 @@ class AssignHandler:
         existing = self.cursor.execute('SELECT 1 FROM defines WHERE name=? AND chat=?', (name, chat)).fetchone()
         if existing is None:
             if message.text:
-                message.text = message.text_markdown_v2_urled
-            encoded_message = jsonpickle.encode(message)
+                text = message.text_markdown_v2_urled
+                encoded_message = message.to_dict()
+                encoded_message['text'] = text
+                encoded_message = json.dumps(encoded_message)
+            else:
+                encoded_message = message.to_json()
             self.cursor.execute('INSERT INTO defines (name, chat, message) VALUES (?, ?, ?)',
                                 (name, chat, encoded_message))
             self.db.commit()
@@ -59,10 +65,10 @@ class AssignHandler:
 
         row = self.cursor.execute('SELECT message FROM defines WHERE name=? AND chat=?', (name, chat)).fetchone()
         if row is not None:
-            return jsonpickle.decode(row[0])
+            return AttrDict(json.loads(row[0]))
         return None
 
-    def assign(self, update: Update, context: CallbackContext):
+    async def assign(self, update: Update, context: CallbackContext):
         """Handle the /assign command"""
 
         try:
@@ -78,7 +84,7 @@ class AssignHandler:
         except AttributeError as e:
             self.logger.warning(e)
 
-    def unassign(self, update: Update, context: CallbackContext):
+    async def unassign(self, update: Update, context: CallbackContext):
         """Handle the /unassign command"""
 
         try:
@@ -93,7 +99,8 @@ class AssignHandler:
 
         except AttributeError as e:
             self.logger.warning(e)
-    def reassign(self, update: Update, context: CallbackContext):
+
+    async def reassign(self, update: Update, context: CallbackContext):
         """Handle the /reassign command"""
         try:
             message = update.message
@@ -116,7 +123,7 @@ class AssignHandler:
         self.cursor.execute('INSERT INTO bonks (user_id, chat_id) VALUES (?, ?)', (user_id, chat_id))
         self.db.commit()
 
-    def handle_bonks(self, update: Update, context: CallbackContext):
+    async def handle_bonks(self, update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
         msg = ''
         for user_id, bonks in self.cursor.execute('SELECT user_id, COUNT(user_id) FROM bonks WHERE chat_id=? GROUP BY user_id ORDER BY COUNT(user_id) DESC LIMIT 10', (chat_id,)):
@@ -130,7 +137,7 @@ class AssignHandler:
             msg = "No bonk counts"
         context.bot.send_message(chat_id=chat_id, text=msg, parse_mode=ParseMode.HTML, disable_notification=True)
 
-    def handle_command(self, update: Update, context: CallbackContext):
+    async def handle_command(self, update: Update, context: CallbackContext):
         """Handle assigned commands"""
 
         try:
@@ -147,15 +154,16 @@ class AssignHandler:
 
             definition = self._get_definition(command_name, chat)
             if definition is not None:
+                self.logger.info(f'Executing command {command_name} for chat {chat}')
                 reply_to = None
                 if message.reply_to_message:
                     reply_to = message.reply_to_message.message_id
-                self.send_message_function(context.bot, definition, chat, reply_to=reply_to)
+                await self.send_message_function(context.bot, definition, chat, reply_to=reply_to)
 
         except AttributeError as e:
             self.logger.warning(e)
 
-    def defines(self, update: Update, context: CallbackContext):
+    async def defines(self, update: Update, context: CallbackContext):
         """Handle the /defines command"""
 
         try:
@@ -169,9 +177,9 @@ class AssignHandler:
 
             if defines:
                 defines = '\n- '.join(defines)
-                context.bot.sendMessage(chat, f'Current defines are:\n- {defines}')
+                await context.bot.sendMessage(chat, f'Current defines are:\n- {defines}')
             else:
-                context.bot.sendMessage(chat, 'There are currently no defines.')
+                await context.bot.sendMessage(chat, 'There are currently no defines.')
 
         except Exception as e:
             self.logger.warning(e)
