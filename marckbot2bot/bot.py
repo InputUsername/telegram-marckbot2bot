@@ -125,6 +125,7 @@ def main():
     webhook_url = os.getenv('WEBHOOK_URL', None)
     if webhook_url is not None:
         application.run_webhook(
+            listen="0.0.0.0",
             port=os.environ['PORT'],
             webhook_url=webhook_url,
             secret_token=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(64)),
