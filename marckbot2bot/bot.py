@@ -129,7 +129,7 @@ def main():
             port=os.environ['PORT'],
             url_path=os.environ['URL_PATH'],
             webhook_url=webhook_url,
-            secret_token=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(64)),
+            secret_token=os.environ['SECRET_TOKEN'],
         )
     else:
         application.run_polling()
