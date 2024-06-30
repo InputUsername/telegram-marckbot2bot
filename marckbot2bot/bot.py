@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import random
+import string
 from telegram.ext import ApplicationBuilder, CallbackContext, CommandHandler, MessageHandler, filters
 from telegram import Update, Bot, Message
 from telegram.constants import ParseMode
@@ -120,7 +122,15 @@ def main():
 
     signal.signal(signal.SIGINT, stop)
 
-    application.run_polling()
+    webhook_url = os.getenv('WEBHOOK_URL', None)
+    if webhook_url is not None:
+        application.run_webhook(
+            port=os.environ['PORT'],
+            webhook_url=webhook_url,
+            secret_token=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(64)),
+        )
+    else:
+        application.run_polling()
 
 
 if __name__ == '__main__':
