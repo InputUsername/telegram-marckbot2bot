@@ -127,6 +127,7 @@ def main():
         application.run_webhook(
             listen="0.0.0.0",
             port=os.environ['PORT'],
+            url_path=os.environ['URL_PATH'],
             webhook_url=webhook_url,
             secret_token=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(64)),
         )
