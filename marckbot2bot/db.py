@@ -84,5 +84,9 @@ async def do_migrations(conn: Connection):
         await conn.execute('INSERT INTO migrations (num) VALUES (?)', (1,))
 
 async def do_migration_1(conn: Connection):
-    await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
-    await conn.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT)')
+    if conn.dbtype == 'sqlite':
+        await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
+        await conn.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT)')
+    else:
+        await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat int, message TEXT)')
+        await conn.execute('CREATE TABLE IF NOT EXISTS bonks (user_id int, chat_id int)')
