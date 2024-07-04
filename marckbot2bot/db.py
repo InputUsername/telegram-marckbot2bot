@@ -25,16 +25,20 @@ class Connection:
             self.conn = await asyncpg.connect(self.db_url)
         return self.conn
 
-    async def select(self, query: str, *args):
+    async def select(self, query: str, args=None):
+        if args is None:
+            args = []
         conn = await self.connect()
         if self.dbtype == 'sqlite':
-            return conn.execute(query, *args).fetchall()
+            return conn.execute(query, args).fetchall()
         return await conn.fetch(replace_qmarks(query), *args)
 
-    async def select_one(self, query: str, *args):
+    async def select_one(self, query: str, args=None):
+        if args is None:
+            args = []
         conn = await self.connect()
         if self.dbtype == 'sqlite':
-            return conn.execute(query, *args).fetchone()
+            return conn.execute(query, args).fetchone()
         return await conn.fetchrow(replace_qmarks(query), *args)
 
     async def update_or_insert(self, table, key_data, update_data):
@@ -45,10 +49,12 @@ class Connection:
         else:
             await conn.execute(f'INSERT INTO {table} ({",".join([*key_data.keys(), *update_data.keys()])}) VALUES ({",".join([f"${n}" for n in range(1, len(key_data) + len(update_data) + 1)])}) ON CONFLICT ({",".join(key_data.keys())}) DO UPDATE SET {",".join([f"{k} = EXCLUDED.{k}" for k in update_data])}', *key_data.values(), *update_data.values())
 
-    async def execute(self, query: str, *args):
+    async def execute(self, query: str, args = None):
+        if args is None:
+            args = []
         conn = await self.connect()
         if self.dbtype == 'sqlite':
-            conn.execute(query, *args)
+            conn.execute(query, args)
         else:
             await conn.execute(replace_qmarks(query), *args)
 
@@ -75,7 +81,7 @@ async def do_migrations(conn: Connection):
 
     for i in range(max_migration + 1, LAST_MIGRATION + 1):
         await globals()[f'do_migration_{i}'](conn)
-        await conn.execute('INSERT INTO migrations (num) VALUES (?)', 1)
+        await conn.execute('INSERT INTO migrations (num) VALUES (?)', (1,))
 
 async def do_migration_1(conn: Connection):
     await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
