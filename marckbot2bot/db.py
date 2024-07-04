@@ -64,7 +64,7 @@ def replace_qmarks(query: str) -> str:
         query = query.replace('?', f'${i + 1}', 1)
     return query
 
-LAST_MIGRATION = 1
+LAST_MIGRATION = 2
 
 async def do_migrations(conn: Connection):
     if conn.dbtype == 'sqlite':
@@ -81,7 +81,7 @@ async def do_migrations(conn: Connection):
 
     for i in range(max_migration + 1, LAST_MIGRATION + 1):
         await globals()[f'do_migration_{i}'](conn)
-        await conn.execute('INSERT INTO migrations (num) VALUES (?)', (1,))
+        await conn.execute('INSERT INTO migrations (num) VALUES (?)', (i,))
 
 async def do_migration_1(conn: Connection):
     if conn.dbtype == 'sqlite':
@@ -90,3 +90,10 @@ async def do_migration_1(conn: Connection):
     else:
         await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat int, message TEXT)')
         await conn.execute('CREATE TABLE IF NOT EXISTS bonks (user_id int, chat_id int)')
+
+async def do_migration_2(conn: Connection):
+    if conn.dbtype == 'postgresql':
+        # upgrade to bigints for chat ids
+        await conn.execute('ALTER TABLE defines ALTER COLUMN chat TYPE bigint USING chat::bigint')
+        await conn.execute('ALTER TABLE bonks ALTER COLUMN chat_id TYPE bigint USING chat_id::bigint')
+        await conn.execute('ALTER TABLE bonks ALTER COLUMN user_id TYPE bigint USING user_id::bigint')
