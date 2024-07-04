@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import random
-import string
 from telegram.ext import ApplicationBuilder, CallbackContext, CommandHandler, MessageHandler, filters
 from telegram import Update, Bot, Message
 from telegram.constants import ParseMode

@@ -5,7 +5,7 @@ description = "A partial fork/copy/resurrection of Marckbot, a Telegram bot with
 authors = [{name = "Koen Bolhuis"}, {name = "Jelle Besseling", email = "jelle@pingiun.com"}]
 readme = "README.md"
 dependencies = [
-    "python-telegram-bot[webhooks]",
+    "python-telegram-bot",
     "Pillow",
 ]
 classifiers = [
@@ -19,6 +19,10 @@ marckbot2bot = "marckbot2bot.bot:main"
 dev = [
     "black",
     "pip-tools",
+]
+prod = [
+    "python-telegram-bot[webhooks]",
+    "asyncpg",
 ]
 
 [tool.setuptools]
