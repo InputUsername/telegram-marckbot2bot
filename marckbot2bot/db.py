@@ -58,6 +58,8 @@ def replace_qmarks(query: str) -> str:
         query = query.replace('?', f'${i + 1}', 1)
     return query
 
+LAST_MIGRATION = 1
+
 async def do_migrations(conn: Connection):
     if conn.dbtype == 'sqlite':
         has_migrations_table = await conn.select_one('SELECT 1 FROM sqlite_master WHERE type="table" AND name="migrations"')
@@ -70,3 +72,11 @@ async def do_migrations(conn: Connection):
         max_migration = 0
     else:
         max_migration = max_migration[0]
+
+    for i in range(max_migration + 1, LAST_MIGRATION + 1):
+        await globals()[f'do_migration_{i}'](conn)
+        await conn.execute('INSERT INTO migrations (num) VALUES (?)', 1)
+
+async def do_migration_1(conn: Connection):
+    await conn.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
+    await conn.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT)')

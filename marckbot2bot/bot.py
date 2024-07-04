@@ -9,6 +9,7 @@ import re
 import logging
 import signal
 
+from marckbot2bot import db
 import marckbot2bot.bf as bf
 from marckbot2bot.assign import AssignHandler
 from marckbot2bot.morejpeg import more_jpeg
@@ -97,11 +98,11 @@ async def run_brainfuck(update: Update, context: CallbackContext):
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    application = ApplicationBuilder().token(os.environ['TG_TOKEN']).build()
+    assign_handler = AssignHandler(BOT_USERNAME, send_define_message)
+
+    application = ApplicationBuilder().token(os.environ['TG_TOKEN']).post_init(assign_handler.do_migrations).build()
 
     application.add_error_handler(error_handler)
-
-    assign_handler = AssignHandler(BOT_USERNAME, send_define_message)
 
     application.add_handler(CommandHandler('assign', assign_handler.assign))
     application.add_handler(CommandHandler('unassign', assign_handler.unassign))

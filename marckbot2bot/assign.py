@@ -23,12 +23,15 @@ class AssignHandler:
         self.send_message_function = send_message_function
 
         self.cursor = Connection(DB_URL)
-        asyncio.run(do_migrations(self.cursor))
 
         # self.cursor.execute('CREATE TABLE IF NOT EXISTS defines (name TEXT, chat TEXT, message TEXT)')
         # self.cursor.execute('CREATE TABLE IF NOT EXISTS bonks (user_id TEXT, chat_id TEXT)')
 
         # self.db.commit()
+
+    async def do_migrations(self, app):
+        print('Migrating database')
+        await do_migrations(self.cursor)
 
     def close(self):
         self.logger.info('Exporting database definitions')
