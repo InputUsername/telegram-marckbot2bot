@@ -64,7 +64,7 @@ def replace_qmarks(query: str) -> str:
         query = query.replace('?', f'${i + 1}', 1)
     return query
 
-LAST_MIGRATION = 2
+LAST_MIGRATION = 3
 
 async def do_migrations(conn: Connection):
     if conn.dbtype == 'sqlite':
@@ -97,3 +97,10 @@ async def do_migration_2(conn: Connection):
         await conn.execute('ALTER TABLE defines ALTER COLUMN chat TYPE bigint USING chat::bigint')
         await conn.execute('ALTER TABLE bonks ALTER COLUMN chat_id TYPE bigint USING chat_id::bigint')
         await conn.execute('ALTER TABLE bonks ALTER COLUMN user_id TYPE bigint USING user_id::bigint')
+
+async def do_migration_3(conn: Connection):
+    if conn.dbtype == 'postgresql':
+        # update_or_insert relies on ON CONFLICT (name, chat), which needs a unique index.
+        # Without it every /assign and /reassign fails on PostgreSQL.
+        await conn.execute('CREATE UNIQUE INDEX IF NOT EXISTS defines_name_chat_key ON defines (name, chat)')
+
