@@ -26,7 +26,7 @@ prod = [
 ]
 
 [tool.setuptools]
-py-modules = ["marckbot2bot"]
+packages = ["marckbot2bot"]
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
