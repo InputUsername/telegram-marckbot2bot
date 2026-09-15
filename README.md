@@ -12,6 +12,7 @@ A partial fork/copy/resurrection of Marckbot, a Telegram bot with a bunch of ran
   - the `/defines` command can be used to list all assigned commands
 - `/morejpeg` command for when an image just isn't JPEG enough
   - also works on static stickers, which come back as a sticker with their transparency intact
+  - every run makes it worse: it keeps 80% of the resolution and cranks contrast, colour and sharpness before crushing, so run it again on the result
 - `/bf` command to run Brainfuck code
   - reply `/bf` to a message to interpret it as Brainfuck
   - use `/bf <code>` to run code directly
